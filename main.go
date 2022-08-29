@@ -14,12 +14,14 @@ import (
 
 var (
 	appStyle = lipgloss.NewStyle().Padding(1, 2).
-			Foreground(lipgloss.Color("#FFFFFF"))
+			Foreground(lipgloss.Color("#FFFFFF")).
+			Bold(true)
 
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFFFFF")).
 			Background(lipgloss.Color("#5853e5")).
-			Padding(1, 2)
+			Padding(1, 2).
+			Bold(true)
 )
 
 type item struct {
@@ -64,13 +66,14 @@ func (m model) runCommand(i item) tea.Cmd {
 }
 
 func main() {
-	s := spinner.NewModel()
+	// s := spinner.NewModel()
 
-	s.Spinner = spinner.Dot
+	// s.Spinner = spinner.Dot
+	// s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
 	items := []list.Item{
 		item{title: "Front-end - NPM Init", desc: "Initalise NPM", command: "npm", args: []string{"init", "-y"}},
-		item{title: "Front-end - NPM Install", desc: "Installs NPM packages", command: "npm", args: []string{"npm", "init", "-y"}},
+		item{title: "Front-end - NPM Install Lodash", desc: "Installs Lodash", command: "npm", args: []string{"install", "lodash"}},
 	}
 
 	// Create a new default delegate
@@ -86,6 +89,7 @@ func main() {
 	m.list.Styles.Title = titleStyle
 	m.spinner = spinner.NewModel()
 	m.spinner.Spinner = spinner.Dot
+	m.spinner.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#39d884"))
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
@@ -146,7 +150,7 @@ func (m model) View() string {
 
 	}
 	if m.loading {
-		return fmt.Sprintf("%s running command...", m.spinner.View())
+		return fmt.Sprintf("%sRunning %s", m.spinner.View(), m.choice)
 	}
 	return appStyle.Render(m.list.View())
 
