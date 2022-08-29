@@ -21,12 +21,14 @@ var (
 )
 
 type item struct {
-	title, desc string
-	command     string
+	title   string
+	desc    string
+	command string
 }
 
 func (i item) Title() string       { return i.title }
 func (i item) Description() string { return i.desc }
+func (i item) Command() string     { return i.command }
 func (i item) FilterValue() string { return i.title }
 
 type model struct {
@@ -39,6 +41,14 @@ type model struct {
 
 func (m model) Init() tea.Cmd {
 	return nil
+}
+
+func (m model) runCommand(command string) tea.Cmd {
+	// Run a command here
+	return func() tea.Msg {
+		m.loading = false
+		return "Asd"
+	}
 }
 
 func main() {
@@ -76,15 +86,11 @@ func main() {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
-	if m.loading {
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
-	}
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
+		case "ctrl+w":
+			m.loading = false
 		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
 		case "enter":
@@ -94,13 +100,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.choice = string(i.title)
 				m.loading = true
 				// println("yo did stuff", i.command)
-				return m, spinner.Tick
+				return m, tea.Batch(
+					spinner.Tick,
+					m.runCommand(item.Command(i)),
+				)
+				// return m, spinner.Tick
 			}
 
 		}
 	case tea.WindowSizeMsg:
 		h, v := appStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
+	}
+
+	if m.loading {
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 	}
 
 	var cmd tea.Cmd
