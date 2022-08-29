@@ -46,8 +46,7 @@ func (m model) Init() tea.Cmd {
 func (m model) runCommand(command string) tea.Cmd {
 	// Run a command here
 	return func() tea.Msg {
-		m.loading = false
-		return "Asd"
+		return ""
 	}
 }
 
@@ -96,15 +95,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			i, ok := m.list.SelectedItem().(item)
 			if ok {
-				// Run command for that item
 				m.choice = string(i.title)
 				m.loading = true
-				// println("yo did stuff", i.command)
 				return m, tea.Batch(
 					spinner.Tick,
 					m.runCommand(item.Command(i)),
 				)
-				// return m, spinner.Tick
 			}
 
 		}
