@@ -11,7 +11,7 @@ type Model struct {
 }
 
 func main() {
-	err := tea.NewProgram(&Model{}).Start()
+	err := tea.NewProgram(&Model{}, tea.WithAltScreen()).Start()
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
