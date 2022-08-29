@@ -26,6 +26,7 @@ type item struct {
 	title   string
 	desc    string
 	command string
+	args    []string
 }
 
 func (i item) Title() string       { return i.title }
@@ -49,10 +50,10 @@ type CommandType struct {
 	name string
 }
 
-func (m model) runCommand(command string) tea.Cmd {
+func (m model) runCommand(i item) tea.Cmd {
 	return func() tea.Msg {
 		m.loading = false
-		out, err := exec.Command("npm", "init", "-y").Output()
+		out, err := exec.Command("npm", i.args...).Output()
 
 		if err != nil {
 			log.Fatal("there was an error ", err, out)
@@ -68,8 +69,8 @@ func main() {
 	s.Spinner = spinner.Dot
 
 	items := []list.Item{
-		item{title: "Front-end - NPM Install", desc: "Installs NPM packages", command: "test"},
-		item{title: "Back-end - NPM Install", desc: "Installs NPM packages", command: "npm install"},
+		item{title: "Front-end - NPM Init", desc: "Initalise NPM", command: "npm", args: []string{"init", "-y"}},
+		item{title: "Front-end - NPM Install", desc: "Installs NPM packages", command: "npm", args: []string{"npm", "init", "-y"}},
 	}
 
 	// Create a new default delegate
@@ -111,7 +112,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.choice = string(i.title)
 					m.loading = true
 					var k = tea.Batch(
-						m.runCommand(item.Command(i)),
+						m.runCommand(i),
 						spinner.Tick,
 					)
 					return m, k
