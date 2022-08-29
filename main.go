@@ -66,11 +66,6 @@ func (m model) runCommand(i item) tea.Cmd {
 }
 
 func main() {
-	// s := spinner.NewModel()
-
-	// s.Spinner = spinner.Dot
-	// s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-
 	items := []list.Item{
 		item{title: "Front-end - NPM Init", desc: "Initalise NPM", command: "npm", args: []string{"init", "-y"}},
 		item{title: "Front-end - NPM Install Lodash", desc: "Installs Lodash", command: "npm", args: []string{"install", "lodash"}},
