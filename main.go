@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -43,10 +45,20 @@ func (m model) Init() tea.Cmd {
 	return nil
 }
 
+type CommandType struct {
+	name string
+}
+
 func (m model) runCommand(command string) tea.Cmd {
-	// Run a command here
 	return func() tea.Msg {
-		return ""
+		m.loading = false
+		out, err := exec.Command("npm", "init", "-y").Output()
+
+		if err != nil {
+			log.Fatal("there was an error ", err, out)
+		}
+
+		return CommandType{name: "npm-install"}
 	}
 }
 
@@ -93,17 +105,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
 		case "enter":
-			i, ok := m.list.SelectedItem().(item)
-			if ok {
-				m.choice = string(i.title)
-				m.loading = true
-				return m, tea.Batch(
-					spinner.Tick,
-					m.runCommand(item.Command(i)),
-				)
+			if !m.loading {
+				i, ok := m.list.SelectedItem().(item)
+				if ok {
+					m.choice = string(i.title)
+					m.loading = true
+					var k = tea.Batch(
+						m.runCommand(item.Command(i)),
+						spinner.Tick,
+					)
+					return m, k
+				}
 			}
 
 		}
+
+	case CommandType:
+		m.loading = false
+
 	case tea.WindowSizeMsg:
 		h, v := appStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
@@ -121,8 +140,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+	if !m.loading {
+		return appStyle.Render(m.list.View())
+
+	}
 	if m.loading {
 		return fmt.Sprintf("%s running command...", m.spinner.View())
 	}
 	return appStyle.Render(m.list.View())
+
 }
