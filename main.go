@@ -8,6 +8,7 @@ import (
 )
 
 type Model struct {
+	count int
 }
 
 func main() {
@@ -35,5 +36,5 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	return "Hello Tea!"
+	return fmt.Sprintf("count: %d\n\n↑ increase  ↓ decrease", m.count)
 }
