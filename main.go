@@ -65,11 +65,16 @@ func (m model) runCommand(i item) tea.Cmd {
 	}
 }
 
-func main() {
-	items := []list.Item{
+func items() []list.Item {
+	return []list.Item{
 		item{title: "Front-end - NPM Init", desc: "Initalise NPM", command: "npm", args: []string{"init", "-y"}},
 		item{title: "Front-end - NPM Install Lodash", desc: "Installs Lodash", command: "npm", args: []string{"install", "lodash"}},
 	}
+}
+
+func main() {
+	// want to spread out multiple types; front end, back end, misc
+	items := items()
 
 	// Create a new default delegate
 	d := list.NewDefaultDelegate()
