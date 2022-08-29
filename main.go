@@ -30,7 +30,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "ctrl+q", "esc":
 			return m, tea.Quit
+		case "up":
+			m.count++
+		case "down":
+			m.count--
 		}
+
 	}
 	return m, nil
 }
