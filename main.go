@@ -16,7 +16,7 @@ var (
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFFFFF")).
 			Background(lipgloss.Color("#5853e5")).
-			Padding(0, 1)
+			Padding(1, 2)
 )
 
 type item struct {
@@ -67,7 +67,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "ctrl+q", "esc":
+		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:
