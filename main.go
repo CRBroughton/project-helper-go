@@ -140,10 +140,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	if !m.loading {
-		return appStyle.Render(m.list.View())
-
-	}
 	if m.loading {
 		return fmt.Sprintf("%sRunning %s", m.spinner.View(), m.choice)
 	}
