@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
 )
@@ -29,9 +30,11 @@ func (i item) Description() string { return i.desc }
 func (i item) FilterValue() string { return i.title }
 
 type model struct {
-	list   list.Model
-	items  []item
-	choice string
+	list    list.Model
+	spinner spinner.Model
+	// items   []item
+	choice  string
+	loading bool
 }
 
 func (m model) Init() tea.Cmd {
@@ -39,6 +42,10 @@ func (m model) Init() tea.Cmd {
 }
 
 func main() {
+	s := spinner.NewModel()
+
+	s.Spinner = spinner.Dot
+
 	items := []list.Item{
 		item{title: "Front-end - NPM Install", desc: "Installs NPM packages", command: "test"},
 		item{title: "Back-end - NPM Install", desc: "Installs NPM packages", command: "npm install"},
@@ -55,6 +62,8 @@ func main() {
 	m := model{list: list.New(items, d, 0, 0)}
 	m.list.Title = "Project Helper v0.1"
 	m.list.Styles.Title = titleStyle
+	m.spinner = spinner.NewModel()
+	m.spinner.Spinner = spinner.Dot
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
@@ -66,6 +75,13 @@ func main() {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	if m.loading {
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
@@ -76,7 +92,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if ok {
 				// Run command for that item
 				m.choice = string(i.title)
-				println("yo did stuff", i.command)
+				m.loading = true
+				// println("yo did stuff", i.command)
+				return m, spinner.Tick
 			}
 
 		}
@@ -91,5 +109,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+	if m.loading {
+		return fmt.Sprintf("%s running command...", m.spinner.View())
+	}
 	return appStyle.Render(m.list.View())
 }
