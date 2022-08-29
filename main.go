@@ -29,7 +29,9 @@ func (i item) Description() string { return i.desc }
 func (i item) FilterValue() string { return i.title }
 
 type model struct {
-	list list.Model
+	list   list.Model
+	items  []item
+	choice string
 }
 
 func (m model) Init() tea.Cmd {
@@ -66,9 +68,17 @@ func main() {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
+		switch keypress := msg.String(); keypress {
 		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
+		case "enter":
+			i, ok := m.list.SelectedItem().(item)
+			if ok {
+				// Run command for that item
+				m.choice = string(i.title)
+				println("yo did stuff", i.command)
+			}
+
 		}
 	case tea.WindowSizeMsg:
 		h, v := appStyle.GetFrameSize()
