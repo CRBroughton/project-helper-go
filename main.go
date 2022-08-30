@@ -118,6 +118,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				i, ok := m.list.SelectedItem().(item)
 				if ok {
 					m.loading = true
+					m.choice = string(i.title)
 					var batch = tea.Batch(
 						spinner.Tick,
 						m.runCommand(i),
