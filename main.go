@@ -22,6 +22,14 @@ var (
 			Background(lipgloss.Color("#5853e5")).
 			Padding(1, 2).
 			Bold(true)
+
+	selectedItem = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#39d884")).
+			BorderLeftForeground(lipgloss.Color("#39d884")).
+			Padding(0, 2)
+
+	spinnerStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#39d884"))
 )
 
 type item struct {
@@ -31,11 +39,6 @@ type item struct {
 	args    []string
 }
 
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.desc }
-func (i item) Command() string     { return i.command }
-func (i item) FilterValue() string { return i.title }
-
 type model struct {
 	list    list.Model
 	spinner spinner.Model
@@ -44,12 +47,15 @@ type model struct {
 	loading bool
 }
 
+type commandEnd bool
+
+func (i item) Title() string       { return i.title }
+func (i item) Description() string { return i.desc }
+func (i item) Command() string     { return i.command }
+func (i item) FilterValue() string { return i.title }
+
 func (m model) Init() tea.Cmd {
 	return nil
-}
-
-type CommandType struct {
-	name string
 }
 
 func (m model) runCommand(i item) tea.Cmd {
@@ -61,7 +67,7 @@ func (m model) runCommand(i item) tea.Cmd {
 			log.Fatal("there was an error ", err, out)
 		}
 
-		return CommandType{name: "npm-install"}
+		return commandEnd(true)
 	}
 }
 
@@ -77,23 +83,22 @@ func main() {
 	items := items()
 
 	// Create a new default delegate
-	d := list.NewDefaultDelegate()
+	delegate := list.NewDefaultDelegate()
 
-	// Change colors
-	c := lipgloss.Color("#39d884")
-	d.Styles.SelectedTitle = d.Styles.SelectedTitle.Foreground(c).BorderLeftForeground(c)
-	d.Styles.SelectedDesc = d.Styles.SelectedTitle.Copy() // reuse the title style here
+	delegate.Styles.SelectedTitle = selectedItem
+	delegate.Styles.SelectedDesc = delegate.Styles.SelectedTitle.Copy()
 
-	m := model{list: list.New(items, d, 0, 0)}
+	m := model{list: list.New(items, delegate, 0, 0)}
 	m.list.Title = "Project Helper v0.1"
 	m.list.Styles.Title = titleStyle
+
 	m.spinner = spinner.NewModel()
 	m.spinner.Spinner = spinner.Dot
-	m.spinner.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#39d884"))
+	m.spinner.Style = spinnerStyle
 
-	p := tea.NewProgram(m, tea.WithAltScreen())
+	program := tea.NewProgram(m, tea.WithAltScreen())
 
-	if err := p.Start(); err != nil {
+	if err := program.Start(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
@@ -101,7 +106,6 @@ func main() {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
@@ -113,19 +117,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !m.loading {
 				i, ok := m.list.SelectedItem().(item)
 				if ok {
-					m.choice = string(i.title)
 					m.loading = true
-					var k = tea.Batch(
-						m.runCommand(i),
+					var batch = tea.Batch(
 						spinner.Tick,
+						m.runCommand(i),
 					)
-					return m, k
+					return m, batch
 				}
 			}
 
 		}
 
-	case CommandType:
+	case commandEnd:
 		m.loading = false
 
 	case tea.WindowSizeMsg:
